@@ -3,12 +3,12 @@ const CleanWebpackPlugin = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const path = require("path");
-
+const ASSET_PATH = '/src/data';
 module.exports = {
   entry: path.join(__dirname, "/src/lottery/index.js"),
   output: {
     path: path.join(__dirname, "/dist"),
-    filename: "lottery.js"
+    filename: "lottery.js",
   },
   module: {
     rules: [

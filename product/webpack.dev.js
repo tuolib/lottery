@@ -8,9 +8,13 @@ module.exports = merge(baseConfig, {
     hot: true,
     compress: true,
     port: 9000,
-    open: true,
+    open: false,
     proxy: {
-      "*": "http://localhost:18888"
+      // "*": "http://localhost:18888",
+      '/api': {
+        target: 'http://localhost:18888',
+        pathRewrite: { '^/api': '' },
+      },
     },
     before() {
       serve.run(18888, "n");

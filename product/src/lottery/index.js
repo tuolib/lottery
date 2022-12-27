@@ -9,6 +9,11 @@ import {
   resetPrize
 } from "./prizeList";
 import { NUMBER_MATRIX } from "./config.js";
+import tempData from '../data/getTempData.json';
+import userData from '../data/getUsers.json';
+import {getJson} from "./util";
+// import XLSX from 'xlsx'
+
 
 const ROTATE_TIME = 3000;
 const ROTATE_LOOP = 1000;
@@ -57,60 +62,161 @@ let selectedCardIndex = [],
   isLotting = false,
   currentLuckys = [];
 
+localStorage.setItem('game', new Date().getTime());
 initAll();
+function getTempData1() {
+  let data = tempData;
+  prizes = data.cfgData.prizes;
+  EACH_COUNT = data.cfgData.EACH_COUNT;
+  COMPANY = data.cfgData.COMPANY;
+  HIGHLIGHT_CELL = createHighlight();
+  basicData.prizes = prizes;
+  setPrizes(prizes);
 
+  TOTAL_CARDS = ROW_COUNT * COLUMN_COUNT;
+
+  // 读取当前已设置的抽奖结果
+  basicData.leftUsers = data.leftUsers;
+  basicData.luckyUsers = data.luckyData;
+
+  let prizeIndex = basicData.prizes.length - 1;
+  for (; prizeIndex > -1; prizeIndex--) {
+    if (
+        data.luckyData[prizeIndex] &&
+        data.luckyData[prizeIndex].length >=
+        basicData.prizes[prizeIndex].count
+    ) {
+      continue;
+    }
+    currentPrizeIndex = prizeIndex;
+    currentPrize = basicData.prizes[currentPrizeIndex];
+    break;
+  }
+
+  showPrizeList(currentPrizeIndex);
+  let curLucks = basicData.luckyUsers[currentPrize.type];
+  setPrizeData(currentPrizeIndex, curLucks ? curLucks.length : 0, true);
+}
+function getTempData2() {
+  getJson('./data/getTempData.json').then(res => {
+    console.log(res);
+    if (res.success) {
+      res.res.json().then(data => {
+        console.log(data);
+        prizes = data.cfgData.prizes;
+        EACH_COUNT = data.cfgData.EACH_COUNT;
+        COMPANY = data.cfgData.COMPANY;
+        HIGHLIGHT_CELL = createHighlight();
+        basicData.prizes = prizes;
+        setPrizes(prizes);
+
+        TOTAL_CARDS = ROW_COUNT * COLUMN_COUNT;
+
+        // 读取当前已设置的抽奖结果
+        basicData.leftUsers = data.leftUsers;
+        basicData.luckyUsers = data.luckyData;
+
+        let prizeIndex = basicData.prizes.length - 1;
+        for (; prizeIndex > -1; prizeIndex--) {
+          if (
+              data.luckyData[prizeIndex] &&
+              data.luckyData[prizeIndex].length >=
+              basicData.prizes[prizeIndex].count
+          ) {
+            continue;
+          }
+          currentPrizeIndex = prizeIndex;
+          currentPrize = basicData.prizes[currentPrizeIndex];
+          break;
+        }
+
+        showPrizeList(currentPrizeIndex);
+        let curLucks = basicData.luckyUsers[currentPrize.type];
+        setPrizeData(currentPrizeIndex, curLucks ? curLucks.length : 0, true);
+      })
+    }
+  });
+}
+function getUserData1() {
+  let data = userData;
+
+  basicData.users = data;
+
+  initCards();
+  // startMaoPao();
+  animate();
+  shineCard();
+}
+function getUserData2() {
+  getJson('./data/getUsers.json').then(res => {
+    console.log(res);
+    if (res.success) {
+      res.res.json().then(data => {
+
+        basicData.users = data;
+
+        initCards();
+        // startMaoPao();
+        animate();
+        shineCard();
+      })
+    }
+  });
+}
 /**
  * 初始化所有DOM
  */
 function initAll() {
-  window.AJAX({
-    url: "/getTempData",
-    success(data) {
-      // 获取基础数据
-      prizes = data.cfgData.prizes;
-      EACH_COUNT = data.cfgData.EACH_COUNT;
-      COMPANY = data.cfgData.COMPANY;
-      HIGHLIGHT_CELL = createHighlight();
-      basicData.prizes = prizes;
-      setPrizes(prizes);
+  getTempData1();
+  getUserData1();
+  // window.AJAX({
+  //   url: "/api/getTempData",
+  //   success(data) {
+  //     // 获取基础数据
+  //     prizes = data.cfgData.prizes;
+  //     EACH_COUNT = data.cfgData.EACH_COUNT;
+  //     COMPANY = data.cfgData.COMPANY;
+  //     HIGHLIGHT_CELL = createHighlight();
+  //     basicData.prizes = prizes;
+  //     setPrizes(prizes);
+  //
+  //     TOTAL_CARDS = ROW_COUNT * COLUMN_COUNT;
+  //
+  //     // 读取当前已设置的抽奖结果
+  //     basicData.leftUsers = data.leftUsers;
+  //     basicData.luckyUsers = data.luckyData;
+  //
+  //     let prizeIndex = basicData.prizes.length - 1;
+  //     for (; prizeIndex > -1; prizeIndex--) {
+  //       if (
+  //         data.luckyData[prizeIndex] &&
+  //         data.luckyData[prizeIndex].length >=
+  //           basicData.prizes[prizeIndex].count
+  //       ) {
+  //         continue;
+  //       }
+  //       currentPrizeIndex = prizeIndex;
+  //       currentPrize = basicData.prizes[currentPrizeIndex];
+  //       break;
+  //     }
+  //
+  //     showPrizeList(currentPrizeIndex);
+  //     let curLucks = basicData.luckyUsers[currentPrize.type];
+  //     setPrizeData(currentPrizeIndex, curLucks ? curLucks.length : 0, true);
+  //   }
+  // });
 
-      TOTAL_CARDS = ROW_COUNT * COLUMN_COUNT;
-
-      // 读取当前已设置的抽奖结果
-      basicData.leftUsers = data.leftUsers;
-      basicData.luckyUsers = data.luckyData;
-
-      let prizeIndex = basicData.prizes.length - 1;
-      for (; prizeIndex > -1; prizeIndex--) {
-        if (
-          data.luckyData[prizeIndex] &&
-          data.luckyData[prizeIndex].length >=
-            basicData.prizes[prizeIndex].count
-        ) {
-          continue;
-        }
-        currentPrizeIndex = prizeIndex;
-        currentPrize = basicData.prizes[currentPrizeIndex];
-        break;
-      }
-
-      showPrizeList(currentPrizeIndex);
-      let curLucks = basicData.luckyUsers[currentPrize.type];
-      setPrizeData(currentPrizeIndex, curLucks ? curLucks.length : 0, true);
-    }
-  });
-
-  window.AJAX({
-    url: "/getUsers",
-    success(data) {
-      basicData.users = data;
-
-      initCards();
-      // startMaoPao();
-      animate();
-      shineCard();
-    }
-  });
+  // window.AJAX({
+  //   url: "/api/getUsers",
+  //   success(data) {
+  //     basicData.users = data;
+  //
+  //     initCards();
+  //     // startMaoPao();
+  //     animate();
+  //     shineCard();
+  //   }
+  // });
 }
 
 function initCards() {
@@ -287,6 +393,14 @@ function bindEvent() {
         break;
       // 导出抽奖结果
       case "save":
+        // saveData().then(res => {
+        //   resetCard().then(res => {
+        //     // 将之前的记录置空
+        //     currentLuckys = [];
+        //   });
+        //   exportData();
+        //   addQipao(`数据已保存到EXCEL中。`);
+        // });
         saveData().then(res => {
           resetCard().then(res => {
             // 将之前的记录置空
@@ -300,6 +414,69 @@ function bindEvent() {
   });
 
   window.addEventListener("resize", onWindowResize, false);
+}
+function exportFile(sheetData, fileName) {
+  // 将由对象组成的数组转化成sheet
+  const sheet = XLSX.utils.json_to_sheet(sheetData)
+  // 百分数和数字更改为数字类型
+  Object.keys(sheet).forEach((key) => {
+    if (sheet[key].v) {
+      const val = sheet[key].v
+      if (!isNaN(val)) {
+        sheet[key].t = 'n'
+      }
+      if (val.lastIndexOf('%') === val.length - 1) {
+        sheet[key].t = 'n'
+        sheet[key].z = '0.00%'
+        sheet[key].v = Number(val.substring(0, val.length - 1)) / 100
+      }
+    }
+  })
+  // 创建虚拟的workbook
+  const wb = XLSX.utils.book_new()
+  // 把sheet添加到workbook中
+  XLSX.utils.book_append_sheet(wb, sheet, fileName)
+  const workbookBlob = workbook2blob(wb)
+  openDownload(workbookBlob, `${fileName}.xls`)
+}
+function openDownload(blob, fileName) {
+  if (typeof blob === 'object' && blob instanceof Blob) {
+    blob = URL.createObjectURL(blob) // 创建blob地址
+  }
+  const aLink = document.createElement('a')
+  aLink.href = blob
+  // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，有时候 file:///模式下不会生效
+  aLink.download = fileName || ''
+  let event
+  if (window.MouseEvent) event = new MouseEvent('click')
+  //   移动端
+  else {
+    event = document.createEvent('MouseEvents')
+    event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+  }
+  aLink.dispatchEvent(event)
+}
+function workbook2blob(workbook) {
+  // 生成excel的配置项
+  const wopts = {
+    // 要生成的文件类型
+    bookType: 'xlsx',
+    // // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+    bookSST: false,
+    type: 'binary',
+  }
+  const wbout = XLSX.write(workbook, wopts)
+  // 将字符串转ArrayBuffer
+  function s2ab(s) {
+    const buf = new ArrayBuffer(s.length)
+    const view = new Uint8Array(buf)
+    for (let i = 0; i !== s.length; ++i) view[i] = s.charCodeAt(i) & 0xff
+    return buf
+  }
+  const blob = new Blob([s2ab(wbout)], {
+    type: 'application/octet-stream',
+  })
+  return blob
 }
 
 function switchScreen(type) {
@@ -681,7 +858,16 @@ function saveData() {
 
   if (currentLuckys.length > 0) {
     // todo by xc 添加数据保存机制，以免服务器挂掉数据丢失
-    return setData(type, currentLuckys);
+    console.log(type);
+    console.log(currentLuckys);
+    let dataBefore = localStorage.getItem(type);
+    let dataBeforeJson = dataBefore ? JSON.parse(dataBefore) : [];
+    let newData = currentLuckys.concat(dataBeforeJson);
+    console.log(newData);
+    let dataAll = JSON.stringify(newData);
+    localStorage.setItem(type, dataAll);
+    return Promise.resolve();
+    // return setData(type, currentLuckys);
   }
   return Promise.resolve();
 }
@@ -784,14 +970,47 @@ function setErrorData(data) {
 }
 
 function exportData() {
-  window.AJAX({
-    url: "/export",
-    success(data) {
-      if (data.type === "success") {
-        location.href = data.url;
-      }
+
+  let sheetData = [
+    {
+      "number": '工号',
+      "name": '姓名',
+      "department": '部门',
+    },
+    // {
+    //   "number": '1',
+    //   "name": '名',
+    //   "department": '门',
+    // },
+  ]
+  let prizes = tempData.cfgData.prizes;
+  for (let i = 0; i < prizes.length; i++) {
+    let prizeType = localStorage.getItem(prizes[i].type);
+    let prizeTypeArr = prizeType ? JSON.parse(prizeType) : [];
+    sheetData.push({
+      "number": prizes[i].text,
+      "name": prizes[i].text,
+      "department": prizes[i].text,
+    })
+    for (let j = 0; j < prizeTypeArr.length; j++) {
+      let singlePrize = prizeTypeArr[j];
+      sheetData.push({
+        "number": singlePrize[0],
+        "name": singlePrize[1],
+        "department": singlePrize[2],
+      })
     }
-  });
+  }
+  // cfgData.prizes;
+  exportFile(sheetData, '中奖结果名单')
+  // window.AJAX({
+  //   url: "/export",
+  //   success(data) {
+  //     if (data.type === "success") {
+  //       location.href = data.url;
+  //     }
+  //   }
+  // });
 }
 
 function reset() {
